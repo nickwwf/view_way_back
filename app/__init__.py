@@ -2,24 +2,9 @@ from .app import Flask
 from .app import rabbit
 from .env import load_env
 from .mq.subs.sub_detect_process import SubDetectProcess, MonitorDetectProcess
-from .tracing import init_tracer
 
 from app.plug.rabbit import RabbitMq
-from celery import Celery, Task
 from flask_cors import CORS
-
-
-def celery_init_app(app):
-    class FlaskTask(Task):
-        def __call__(self, *args: object, **kwargs: object) -> object:
-            with app.app_context():
-                return self.run(*args, **kwargs)
-
-    celery_app = Celery(app.name, task_cls=FlaskTask)
-    celery_app.config_from_object(app.config["CELERY"])
-    celery_app.set_default()
-    app.extensions["celery"] = celery_app
-    return celery_app
 
 
 def register_blueprints(app):
