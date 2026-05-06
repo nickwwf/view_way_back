@@ -12,8 +12,8 @@ from app.models import SUser
 from app.models.base import db
 
 # Token配置
-ACCESS_TOKEN_EXPIRE_MINUTES = 15  # Access Token 15分钟过期
-REFRESH_TOKEN_EXPIRE_DAYS = 7     # Refresh Token 7天过期
+ACCESS_TOKEN_EXPIRE_MINUTES = 12 * 60  # Access Token 12*60分钟过期
+REFRESH_TOKEN_EXPIRE_DAYS = 15  # Refresh Token 7天过期
 
 
 def generate_access_token(uid, ac_type, scope=None):
@@ -78,7 +78,7 @@ def verify_auth_token(token, token_type='access'):
             raise TokenFailed(msg=f'Invalid token type, expected {token_type}')
         return data
     except jwt.ExpiredSignatureError:
-        raise TokenExpired()    # token 过期
+        raise TokenExpired()  # token 过期
     except PyJWTError:
         raise TokenFailed()  # token 无效
 
@@ -105,6 +105,7 @@ def get_user_by_token(token):
 
     return
 
+
 def verify_refresh_token(token):
     """验证Refresh Token并返回用户信息"""
     data = verify_auth_token(token, token_type='refresh')
@@ -119,12 +120,13 @@ def login_required(f):
     1. Authorization: Bearer <token>（推荐）
     2. Authorization: Basic base64(token:)（向后兼容）
     """
+
     def decorated_function(*args, **kwargs):
         token = None
-        
+
         # 从请求头获取Authorization
         auth_header = request.headers.get('Authorization')
-        
+
         if auth_header:
             # 检查是否是Bearer Token
             if auth_header.startswith('Bearer '):
@@ -138,10 +140,10 @@ def login_required(f):
                     token = decoded.split(':')[0]
                 except:
                     pass
-        
+
         if not token:
             raise AuthFailed(msg='Authorization header is required')
-        
+
         # 验证Token
         try:
             get_user_by_token(token)
